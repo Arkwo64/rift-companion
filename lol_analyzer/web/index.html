@@ -19,10 +19,18 @@
   button:hover{border-color:var(--blue)}
   button:disabled{opacity:.5;cursor:default}
   .tabs{display:flex;gap:6px;margin:18px 0 8px;border-bottom:1px solid var(--bd2);
-        position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
-  .tab{padding:9px 16px;cursor:pointer;border-bottom:2px solid transparent;color:var(--mut);font-weight:600}
+        position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px;overflow-x:auto}
+  .tab{padding:9px 16px;cursor:pointer;border-bottom:2px solid transparent;color:var(--mut);font-weight:600;flex:none;white-space:nowrap}
   .tab.active{color:var(--fg);border-bottom-color:var(--blue)}
   .tab .c{color:var(--mut);font-weight:400;font-size:12px}
+  .search{position:relative}
+  .search input{background:var(--card);border:1px solid var(--bd);border-radius:8px;color:var(--fg);padding:8px 12px;font-size:14px;width:200px}
+  .search input:focus{border-color:var(--blue);outline:none}
+  #searchresults{display:none;position:absolute;top:112%;right:0;min-width:250px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;z-index:20;max-height:340px;overflow:auto;box-shadow:0 8px 24px #0009}
+  .sres{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;font-size:14px;border-bottom:1px solid var(--bd2)}
+  .sres:hover{background:#1b2230}
+  .qsel{margin-bottom:14px} .qsel select{background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:7px 10px;font-size:14px}
+  @media(max-width:640px){.search,.search input{width:100%} .wrap{padding:16px 14px 60px}}
   .kpis{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}
   .kpi{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 16px;min-width:110px}
   .kpi .v{font-size:22px;font-weight:700}.kpi .l{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
@@ -117,6 +125,7 @@
         <div class="sub" id="rsub"></div>
       </div>
       <div class="spacer"></div>
+      <div class="search"><input id="champsearch" placeholder="🔎 Buscar campeón…" autocomplete="off"><div id="searchresults"></div></div>
       <button id="refresh">↻ Refrescar</button>
     </header>
     <div class="tabs" id="tabs"></div>
@@ -162,26 +171,55 @@ function render(){
     (solo?`<b>${esc(solo.tier)} ${esc(solo.division)} · ${solo.lp} LP</b>`:"Sin rank")+
     ` · generado ${esc(DATA.generated)}`;
   const counts={}; (DATA.queue_counts||[]).forEach(q=>counts[q.queue]=q.count);
-  const tabs=[["SUMMARY","★ Resumen"],["LIVE","🔴 Live"],["RANKED_SOLO","Solo/Duo"],
-              ["RANKED_FLEX","Flex"],["NORMAL","Normal"],["ALL","Todo"],
-              ["MATES","Compañeros"],["ITEMS","Items"],["HISTORY","Historial"]];
+  const tabs=[["SUMMARY","★ Resumen"],["CHAMPS","Campeones"],["MATES","Compañeros"],
+              ["HISTORY","Historial"],["LIVE","🔴 Live"]];
   $("#tabs").innerHTML=tabs.map(([k,l])=>{
-    const c=k==="ALL"?Object.values(counts).reduce((a,b)=>a+b,0)
-           :k==="HISTORY"?(DATA.recent_matches||[]).length
+    const c=k==="HISTORY"?(DATA.recent_matches||[]).length
            :k==="MATES"?((DATA.teammates||{}).list||[]).length
-           :k==="ITEMS"?(DATA.item_winrates||[]).length
-           :(k==="SUMMARY"||k==="LIVE")?"":(counts[k]||0);
+           :k==="CHAMPS"?(((DATA.queues.ALL||{}).champions||[]).length)
+           :"";
     return `<div class="tab ${k===CUR?"active":""}" data-q="${k}">${l}${c!==""?` <span class="c">${c}</span>`:""}</div>`;
   }).join("");
   $("#tabs").querySelectorAll(".tab").forEach(t=>t.onclick=()=>{CUR=t.dataset.q;render();});
   $("#metanote").textContent=DATA.meta_note||"";
   $("#loading").style.display="none"; $("#app").style.display="block";
+  setupSearch();
   if(CUR==="SUMMARY") renderSummary();
   else if(CUR==="LIVE") renderLive();
   else if(CUR==="HISTORY") renderHistory();
   else if(CUR==="MATES") renderMates();
-  else if(CUR==="ITEMS") renderItems();
-  else renderPanel(DATA.queues[CUR]);
+  else if(CUR==="CHAMPS") renderChamps();
+  else renderSummary();
+}
+
+let CHAMPQ="ALL";
+function renderChamps(){
+  const opts=[["RANKED_SOLO","Solo/Duo"],["RANKED_FLEX","Flex"],["NORMAL","Normal"],["ALL","Todo"]];
+  const counts={}; (DATA.queue_counts||[]).forEach(q=>counts[q.queue]=q.count);
+  const cnt=k=>k==="ALL"?Object.values(counts).reduce((a,b)=>a+b,0):(counts[k]||0);
+  if(!DATA.queues[CHAMPQ]) CHAMPQ="ALL";
+  let h=`<div class="qsel"><span class="muted">Cola:</span> <select id="champq">`+
+    opts.map(([k,l])=>`<option value="${k}" ${k===CHAMPQ?"selected":""}>${l} (${cnt(k)})</option>`).join("")+
+    `</select></div><div id="cpanel"></div>`;
+  $("#panel").innerHTML=h;
+  $("#champq").onchange=e=>{CHAMPQ=e.target.value; renderPanel(DATA.queues[CHAMPQ],"#cpanel");};
+  renderPanel(DATA.queues[CHAMPQ],"#cpanel");
+}
+
+function setupSearch(){
+  const input=$("#champsearch"), box=$("#searchresults");
+  if(!input) return;
+  input.oninput=()=>{
+    const q=input.value.trim().toLowerCase();
+    const champs=((DATA.queues.ALL||{}).champions)||[];
+    if(!q){box.style.display="none";return;}
+    const found=champs.filter(c=>c.name.toLowerCase().includes(q)).slice(0,8);
+    box.innerHTML=found.map(c=>`<div class="sres" data-n="${esc(c.name)}">${icon(c.id_name,'ico sm')} ${esc(c.name)} <span class="muted">${c.play}g · ${c.win_rate}%</span></div>`).join("")
+      ||'<div class="sres muted">sin partidas con ese champ</div>';
+    box.style.display="block";
+    box.querySelectorAll(".sres[data-n]").forEach(el=>el.onclick=()=>{openChamp(el.dataset.n,'ALL');input.value="";box.style.display="none";});
+  };
+  input.onblur=()=>setTimeout(()=>{box.style.display="none";},200);
 }
 
 const GROUP_COLORS=["#d29922","#58a6ff","#3fb950","#db61a2","#a371f7"];
@@ -411,8 +449,8 @@ function muRow(m){const w=m.win_rate;return `<div class="mu-row"><div class="mu-
   `<div class="bar"><i style="width:${w}%;background:${wrColor(w)}"></i><span class="t">${w}%</span></div>`+
   `<div class="mu-g">${m.wins}/${m.games}</div></div>`;}
 
-function renderPanel(a){
-  if(!a||!a.overall){$("#panel").innerHTML=`<p class="muted">Sin partidas en esta cola.</p>`;return;}
+function renderPanel(a, target="#panel"){
+  if(!a||!a.overall){$(target).innerHTML=`<p class="muted">Sin partidas en esta cola.</p>`;return;}
   const ov=a.overall, R=a.recommendations, H=a.habits, T=a.time_habits, M=a.matchups;
   let h="";
   h+=`<div class="kpis">
@@ -484,7 +522,7 @@ function renderPanel(a){
   // Champion table (sortable — click headers)
   h+=`<h2>🏆 Todos los campeones <span class="muted" style="font-size:12px;font-weight:400">(clic en un champ para detalle · clic en cabecera para ordenar)</span></h2>
     <div id="champtable"></div>`;
-  $("#panel").innerHTML=h;
+  $(target).innerHTML=h;
   CHAMPS=a.champions;
   renderChampTable();
 }
@@ -521,7 +559,7 @@ function renderChampTable(){
     if(SORT.field===f) SORT.dir*=-1; else {SORT.field=f; SORT.dir=-1;}
     renderChampTable();
   });
-  $("#champtable").querySelectorAll("tr[data-champ]").forEach(tr=>tr.onclick=()=>openDrawer(tr.dataset.champ));
+  $("#champtable").querySelectorAll("tr[data-champ]").forEach(tr=>tr.onclick=()=>openChamp(tr.dataset.champ, CHAMPQ));
 }
 
 function buildCard(name,b){
@@ -547,9 +585,9 @@ function myBuildCard(mb){
     <div class="brow"><span class="blabel">Items</span> ${items}</div></div>`;
 }
 
-function openDrawer(name){
-  const a=DATA.queues[CUR];
-  const champ=a.champions.find(c=>c.name===name)||{};
+function openChamp(name, qKey){
+  const a=DATA.queues[qKey]||DATA.queues.ALL;
+  const champ=(a.champions||[]).find(c=>c.name===name)||((DATA.queues.ALL||{}).champions||[]).find(c=>c.name===name)||{name};
   const mus=(a.matchups&&a.matchups.by_my_champion&&a.matchups.by_my_champion[name])||[];
   const build=(DATA.builds||{})[name];
   let h=`<span class="x" onclick="closeDrawer()">×</span>`;
@@ -557,6 +595,11 @@ function openDrawer(name){
   h+=`<div class="sub">${champ.play||0} partidas · ${champ.win_rate||0}% WR · KDA ${champ.kda??"—"}`+
      (champ.roi!=null?` · ROI ${champ.roi>=0?"+":""}${champ.roi}%`:"")+`</div>`;
   if(champ.reason)h+=`<p class="muted" style="font-size:13px">${esc(champ.reason)}</p>`;
+  const games=(DATA.recent_matches||[]).filter(r=>r.champion===name);
+  if(games.length){
+    h+=`<h2>Partidas recientes <span class="muted" style="font-size:12px;font-weight:400">(de tu historial)</span></h2>`+
+      games.slice(0,8).map(r=>`<div class="mu-row"><div style="flex:1;font-size:13px"><b style="color:${r.win?'var(--green)':'var(--red)'}">${r.win?'V':'D'}</b> ${r.k}/${r.d}/${r.a} <span class="muted">${r.kda} KDA · ${r.cs} CS</span></div><div class="mu-g">${r.opponent?'vs '+esc(r.opponent):''} ${esc(r.date)}</div></div>`).join("");
+  }
   const mine=(DATA.my_builds||{})[name];
   const diffs=(DATA.build_diffs||{})[name]||[];
   if(mine){
@@ -576,6 +619,11 @@ function openDrawer(name){
       h+=`<div class="muted" style="margin:8px 0 2px">${ROLELBL[role]||("vs "+role)}</div>`+rows.map(muRow).join("");
     });
   }else h+=`<p class="muted">Sin suficientes repeticiones por enemigo todavía.</p>`;
+  const iw=(DATA.item_winrates||[]).find(c=>c.champ===name);
+  if(iw&&iw.items&&iw.items.length){
+    h+=`<h2>Tus items por winrate <span class="muted" style="font-size:12px;font-weight:400">(correlación, no causa)</span></h2>`+
+      iw.items.map(it=>`<div class="mu-row"><div class="mu-name" style="width:150px">${itemIcon(it.id)}${esc(it.name)}</div><div class="bar"><i style="width:${it.win_rate}%;background:${wrColor(it.win_rate)}"></i><span class="t">${it.win_rate}%</span></div><div class="mu-g">${it.games}g</div></div>`).join("");
+  }
   $("#drawer").innerHTML=h;
   $("#drawer").classList.add("open"); $("#ov").style.display="block";
 }

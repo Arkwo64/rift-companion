@@ -1,6 +1,7 @@
-# Secrets — never commit your API key or tokens
+# Secrets — never commit your API key, tokens, or personal config
 riot_key.txt
 gh_token.txt
+config.json
 
 # Generated / cached data
 .cache/

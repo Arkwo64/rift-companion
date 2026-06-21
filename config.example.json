@@ -1,0 +1,15 @@
+{
+  "riot_id": "YourName#TAG",
+  "region": "euw",
+  "focus_queue": "RANKED",
+  "elo_bracket": "emerald_plus",
+  "min_games_for_confidence": 10,
+  "match_count": 200,
+  "timeline_count": 150,
+  "rank_match_count": 25,
+  "port": 8770,
+  "host": "127.0.0.1",
+  "access_token": "",
+  "_comment": "Copy this file to config.json and set your riot_id. For phone access (same WiFi) set host to 0.0.0.0 and a secret access_token. focus_queue: RANKED, RANKED_SOLO, RANKED_FLEX, NORMAL, ARAM or ALL. region: euw, na, kr, las, lan, eune...",
+  "auto_refresh_minutes": 10
+}

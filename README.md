@@ -16,9 +16,11 @@ python app.py "MarcoRubio#5570" euw # sobreescribe cuenta/región
 O usa el **acceso directo del escritorio** (`LoL Analyzer`) — doble clic y se abre solo.
 El lanzador es `LoL Analyzer.bat`; cierra la ventana de consola para detener la app.
 
-Dashboard interactivo con pestañas **Solo/Duo · Flex · Normal · Todo · Compañeros ·
-Historial**, matchups por línea, builds, hábitos y drill-down por campeón. Todo en
-`127.0.0.1`.
+Dashboard interactivo con **5 pestañas**: **Resumen** (lo importante de un vistazo) ·
+**Campeones** (con desplegable de cola: Solo/Flex/Normal/Todo) · **Compañeros** ·
+**Historial** · **Live**. Arriba hay un **buscador de campeón**: escribe cualquier champ
+tuyo y abre su ficha (historial reciente, win rate, matchups por línea, tu build vs meta
+e items por winrate). Todo en `127.0.0.1`.
 
 **Se actualiza solo:** el servidor vuelve a consultar la Riot API cada
 `auto_refresh_minutes` (10 por defecto) y la web se refresca sola cada 60s. Tras
