@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rift Companion — Personal LoL Analytics</title>
+<style>
+  :root{--bg:#0d1117;--card:#161b22;--bd:#30363d;--fg:#c9d1d9;--mut:#8b949e;--accent:#58a6ff;--green:#3fb950}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.6 system-ui,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:820px;margin:0 auto;padding:48px 22px 80px}
+  h1{font-size:34px;margin:0 0 6px} .tag{color:var(--mut);font-size:18px;margin-bottom:8px}
+  .pill{display:inline-block;background:var(--card);border:1px solid var(--bd);border-radius:999px;
+    padding:4px 12px;font-size:13px;color:var(--mut);margin:14px 0 30px}
+  h2{font-size:20px;margin:34px 0 12px;border-bottom:1px solid var(--bd);padding-bottom:8px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .feat{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px 16px}
+  .feat b{color:var(--fg)} .feat p{margin:4px 0 0;color:var(--mut);font-size:14px}
+  a{color:var(--accent)} .cta{display:inline-block;margin-top:8px;background:var(--card);
+    border:1px solid var(--bd);border-radius:10px;padding:10px 18px;text-decoration:none}
+  .api{color:var(--mut);font-size:14px} code{background:var(--card);border:1px solid var(--bd);
+    border-radius:6px;padding:1px 6px;font-size:13px}
+  footer{color:var(--mut);font-size:13px;margin-top:40px;border-top:1px solid var(--bd);padding-top:16px}
+</style></head>
+<body><div class="wrap">
+  <h1>Rift Companion</h1>
+  <div class="tag">A personal League of Legends analytics dashboard.</div>
+  <span class="pill">Personal project · runs locally · single account</span>
+
+  <p>Rift Companion aggregates my own Riot API match history and turns it into actionable
+  insights to help me improve and make better pre-game decisions. It is a local web app
+  (Python, standard library only) that I run on my own machine.</p>
+
+  <h2>What it does</h2>
+  <div class="grid">
+    <div class="feat"><b>🏆 Champion performance</b><p>Best/worst champions using sample-size-adjusted win rates (Wilson score) cross-referenced with meta win rates for my elo.</p></div>
+    <div class="feat"><b>⚔️ Lane matchups</b><p>My win rate against each enemy laner, split by enemy role (ADC, support, etc.).</p></div>
+    <div class="feat"><b>🛠️ Build vs meta</b><p>The items and runes I actually build compared to the recommended meta builds.</p></div>
+    <div class="feat"><b>👥 Premades & synergies</b><p>The duos I queue with and which champion pairings win most together.</p></div>
+    <div class="feat"><b>⏰ Habits & tilt</b><p>Form by time of day and after losses, plus early-game leads and snowball/comeback tendencies from match timelines.</p></div>
+    <div class="feat"><b>🔴 Live game</b><p>When I load into a match: both teams, each player's rank, and detected premades (uses the Spectator API).</p></div>
+  </div>
+
+  <h2>Riot APIs used</h2>
+  <p class="api">Account-V1, Summoner-V4, League-V4, Match-V5, Spectator-V5, Champion-Mastery-V4,
+  and Data Dragon. Low-traffic, personal use, a single account.</p>
+
+  <h2>Source code</h2>
+  <p>The full project is open source:</p>
+  <a class="cta" href="https://github.com/Arkwo64/rift-companion">View on GitHub →</a>
+
+  <footer>Rift Companion is an independent personal project and is not endorsed by Riot Games.
+  League of Legends and Riot Games are trademarks of Riot Games, Inc.</footer>
+</div></body></html>
