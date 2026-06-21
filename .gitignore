@@ -1,0 +1,10 @@
+# Secrets — never commit your API key or tokens
+riot_key.txt
+gh_token.txt
+
+# Generated / cached data
+.cache/
+data/
+output/
+__pycache__/
+*.pyc

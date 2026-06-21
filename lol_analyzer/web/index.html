@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoL Analyzer</title>
+<style>
+  :root{--bg:#0d1117;--card:#161b22;--bd:#30363d;--bd2:#21262d;--fg:#c9d1d9;--mut:#8b949e;
+        --green:#3fb950;--blue:#58a6ff;--red:#f85149;--yellow:#d29922;--gray:#8b949e;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
+  a{color:var(--blue)}
+  .wrap{max-width:1140px;margin:0 auto;padding:22px 20px 70px}
+  header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+  h1{font-size:22px;margin:0}
+  .sub{color:var(--mut);font-size:13px}
+  .spacer{flex:1}
+  button{background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:8px;
+         padding:8px 14px;cursor:pointer;font-size:14px}
+  button:hover{border-color:var(--blue)}
+  button:disabled{opacity:.5;cursor:default}
+  .tabs{display:flex;gap:6px;margin:18px 0 8px;border-bottom:1px solid var(--bd2);
+        position:sticky;top:0;background:var(--bg);z-index:5;padding-top:8px}
+  .tab{padding:9px 16px;cursor:pointer;border-bottom:2px solid transparent;color:var(--mut);font-weight:600}
+  .tab.active{color:var(--fg);border-bottom-color:var(--blue)}
+  .tab .c{color:var(--mut);font-weight:400;font-size:12px}
+  .kpis{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}
+  .kpi{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 16px;min-width:110px}
+  .kpi .v{font-size:22px;font-weight:700}.kpi .l{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+  h2{font-size:16px;margin:26px 0 10px;border-bottom:1px solid var(--bd2);padding-bottom:6px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:780px){.grid2{grid-template-columns:1fr}}
+  ul.recs{list-style:none;padding:0;margin:0}
+  ul.recs li{padding:8px 0;border-bottom:1px solid var(--bd2);display:flex;gap:8px;align-items:flex-start}
+  ul.recs .why{font-size:13px;color:var(--mut)}
+  .ico{width:28px;height:28px;border-radius:6px;flex:none;background:#222}
+  .ico.sm{width:22px;height:22px;border-radius:5px}
+  .muted{color:var(--mut)}
+  .chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:600}
+  .mu-row{display:flex;align-items:center;gap:8px;padding:5px 0}
+  .bar{position:relative;flex:1;background:var(--bd2);border-radius:6px;height:18px;overflow:hidden}
+  .bar > i{position:absolute;left:0;top:0;bottom:0;display:block}
+  .bar .t{position:absolute;right:7px;top:0;font-size:11px;line-height:18px;color:#fff}
+  .mu-name{width:120px;display:flex;align-items:center;gap:6px;font-size:13px}
+  .mu-g{width:64px;text-align:right;font-size:12px;color:var(--mut)}
+  .hgrid{display:flex;gap:10px;flex-wrap:wrap}
+  .hcard{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;min-width:108px;text-align:center;flex:1}
+  .hcard .v{font-size:20px;font-weight:700}.hcard .l{font-size:11px;color:var(--mut);margin-top:3px}.hcard .r{font-size:10px;text-transform:uppercase;margin-top:3px}
+  .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:780px){.bgrid{grid-template-columns:1fr}}
+  .bcard{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:13px 15px}
+  .bcard .bn{font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .brow{font-size:13px;padding:2px 0}.blabel{display:inline-block;width:70px;color:var(--mut);font-size:11px;text-transform:uppercase}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--bd2)}
+  th{color:var(--mut);font-size:11px;text-transform:uppercase;cursor:default}
+  tbody tr{cursor:pointer}tbody tr:hover td{background:#1b2230}
+  .champcell{display:flex;align-items:center;gap:8px;font-weight:600}
+  .note{background:var(--card);border:1px solid var(--bd);border-left:3px solid var(--blue);border-radius:8px;padding:11px 14px;margin:14px 0}
+  .foot{color:var(--mut);font-size:12px;margin-top:28px}
+  .itm{display:inline-flex;align-items:center;gap:4px;margin:2px 8px 2px 0;white-space:nowrap;vertical-align:middle}
+  .iitm{width:22px;height:22px;border-radius:4px;flex:none}
+  .ispl{width:16px;height:16px;border-radius:3px;vertical-align:middle}
+  .brow{line-height:1.9}
+  .sbteam{margin:10px 0;border:1px solid var(--bd);border-radius:8px;padding:8px 10px}
+  .sbhead{font-weight:700;margin-bottom:6px;font-size:13px}
+  .pl{display:flex;align-items:center;gap:6px;padding:4px 2px;border-bottom:1px solid var(--bd2);font-size:12px}
+  .pl.me{background:#1f6feb22;border-radius:6px;padding:4px 6px}
+  .spl{display:flex;flex-direction:column;gap:1px}
+  .pn{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .pn .muted{font-size:11px}
+  .prank{font-size:10px;background:#30363d;color:#c9d1d9;border-radius:4px;padding:1px 5px;margin-left:4px;white-space:nowrap}
+  .pmate{font-size:10px;border-radius:4px;padding:0 3px;margin-left:4px}
+  .pitems{display:flex;gap:2px}.pitems img{width:18px;height:18px;border-radius:3px}
+  th.sortable{cursor:pointer;user-select:none} th.sortable:hover{color:var(--fg)}
+  .mates{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:780px){.mates{grid-template-columns:1fr}}
+  .mate{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;cursor:pointer}
+  .mate:hover{border-color:var(--blue)}
+  .mhead{font-size:15px;display:flex;gap:6px;align-items:baseline}
+  .mstat{font-size:13px;margin:4px 0 8px} .mchamps{display:flex;flex-wrap:wrap;gap:2px}
+  .syn{display:flex;align-items:center;gap:4px;flex:1;font-size:13px;flex-wrap:wrap}
+  .duos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+  @media(max-width:780px){.duos{grid-template-columns:1fr}}
+  .duo{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px}
+  .mrec{font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;background:#1f6feb14;border-radius:6px;padding:4px 6px}
+  ul.sumlist{list-style:none;padding:0;margin:0}
+  ul.sumlist li{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:9px 11px;margin-bottom:7px;
+    background:var(--card);border:1px solid var(--bd);border-radius:9px;font-size:13.5px;line-height:1.45}
+  ul.sumlist.good li{border-left:3px solid var(--green)}
+  ul.sumlist.bad li{border-left:3px solid var(--red)}
+  .form{display:inline-flex;gap:3px;align-items:center;height:26px}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+  .hist{display:flex;flex-direction:column;gap:6px}
+  .hrow{display:grid;grid-template-columns:26px 1.7fr 1fr 1fr 1.5fr .8fr;align-items:center;gap:10px;
+        background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:7px 10px;font-size:13px}
+  .hres{font-weight:700;text-align:center;font-size:15px}
+  .hchamp{display:flex;align-items:center;gap:8px}
+  .hq{font-size:11px} .hkda,.hcs{line-height:1.25} .hvs{display:flex;align-items:center;gap:5px}
+  .hdate{text-align:right;font-size:12px;line-height:1.3}
+  @media(max-width:780px){.hrow{grid-template-columns:22px 1.4fr 1fr .9fr;gap:8px}.hcs,.hvs{display:none}}
+  /* drawer */
+  #ov{position:fixed;inset:0;background:#000a;display:none;z-index:9}
+  #drawer{position:fixed;top:0;right:0;bottom:0;width:min(480px,92vw);background:var(--bg);
+          border-left:1px solid var(--bd);padding:20px;overflow:auto;transform:translateX(100%);
+          transition:transform .18s;z-index:10}
+  #drawer.open{transform:none}
+  .x{float:right;cursor:pointer;color:var(--mut);font-size:22px;line-height:1}
+  .pill{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:3px 8px;font-size:12px;margin:0 4px 4px 0;display:inline-block}
+  #loading{padding:60px 0;text-align:center;color:var(--mut)}
+</style></head>
+<body><div class="wrap">
+  <div id="loading">Cargando datos de la cuenta…</div>
+  <div id="app" style="display:none">
+    <header>
+      <div>
+        <h1 id="rid"></h1>
+        <div class="sub" id="rsub"></div>
+      </div>
+      <div class="spacer"></div>
+      <button id="refresh">↻ Refrescar</button>
+    </header>
+    <div class="tabs" id="tabs"></div>
+    <div id="panel"></div>
+    <div class="note" id="metanote"></div>
+    <div class="foot">Fuente: Riot API (tus partidas) · builds de op.gg · meta de lolalytics. "WR ajust." = win rate ajustado por muestra (Wilson). ROI = tu WR − WR del meta en tu elo (calibrado para ranked). Haz clic en un campeón para ver tus matchups y su build.</div>
+  </div>
+</div>
+
+<div id="ov"></div>
+<div id="drawer"></div>
+
+<script>
+const VERDICT={main:["MAIN","var(--green)"],lean_in:["APROVECHAR","var(--blue)"],
+  neutral:["NEUTRAL","var(--gray)"],bench:["BANQUILLO","var(--red)"],sample:["MUESTRA CORTA","var(--yellow)"]};
+let DATA=null, VER="15.13.1", CUR="SUMMARY";
+const $=s=>document.querySelector(s);
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const icon=(idn,cls="ico")=>idn?`<img class="${cls}" loading="lazy" src="https://ddragon.leagueoflegends.com/cdn/${VER}/img/champion/${esc(idn)}.png" onerror="this.style.visibility='hidden'">`:"";
+const itemIcon=id=>id?`<img class="iitm" loading="lazy" src="https://ddragon.leagueoflegends.com/cdn/${VER}/img/item/${id}.png" onerror="this.style.display='none'">`:"";
+const runeIcon=id=>{const u=(DATA.rune_icons||{})[id];return u?`<img class="iitm" loading="lazy" src="${u}" onerror="this.style.display='none'">`:"";};
+const spellIcon=id=>{const u=(DATA.spell_icons||{})[id];return u?`<img class="ispl" loading="lazy" src="${u}" onerror="this.style.display='none'">`:"";};
+const itemList=arr=>(arr||[]).map(i=>`<span class="itm">${itemIcon(i.id)}${esc(i.name)}</span>`).join("");
+const wrColor=w=>w>=50?"var(--green)":"var(--red)";
+
+async function load(refresh){
+  if(!refresh){$("#loading").style.display="block";$("#app").style.display="none";}
+  const r=await fetch(refresh?"/api/refresh":"/api/data",{method:refresh?"POST":"GET"});
+  if(r.status===202){ // data still loading in the background — poll
+    $("#loading").style.display="block";
+    $("#loading").textContent="Cargando datos de la cuenta… (el primer arranque puede tardar)";
+    setTimeout(()=>load(false),1500); return;
+  }
+  if(!r.ok){const e=await r.json().catch(()=>({error:r.status}));
+    $("#loading").style.display="block";$("#loading").textContent="Error: "+(e.error||r.status);return;}
+  DATA=await r.json(); VER=DATA.ddragon_version||VER;
+  render();
+}
+function render(){
+  const p=DATA.profile, solo=(p.ranks||{}).SOLORANKED;
+  $("#rid").textContent=`${p.riot_id}`;
+  $("#rsub").innerHTML=`${esc((p.region||"").toUpperCase())} · Nivel ${p.level||"?"} · `+
+    (solo?`<b>${esc(solo.tier)} ${esc(solo.division)} · ${solo.lp} LP</b>`:"Sin rank")+
+    ` · generado ${esc(DATA.generated)}`;
+  const counts={}; (DATA.queue_counts||[]).forEach(q=>counts[q.queue]=q.count);
+  const tabs=[["SUMMARY","★ Resumen"],["LIVE","🔴 Live"],["RANKED_SOLO","Solo/Duo"],
+              ["RANKED_FLEX","Flex"],["NORMAL","Normal"],["ALL","Todo"],
+              ["MATES","Compañeros"],["ITEMS","Items"],["HISTORY","Historial"]];
+  $("#tabs").innerHTML=tabs.map(([k,l])=>{
+    const c=k==="ALL"?Object.values(counts).reduce((a,b)=>a+b,0)
+           :k==="HISTORY"?(DATA.recent_matches||[]).length
+           :k==="MATES"?((DATA.teammates||{}).list||[]).length
+           :k==="ITEMS"?(DATA.item_winrates||[]).length
+           :(k==="SUMMARY"||k==="LIVE")?"":(counts[k]||0);
+    return `<div class="tab ${k===CUR?"active":""}" data-q="${k}">${l}${c!==""?` <span class="c">${c}</span>`:""}</div>`;
+  }).join("");
+  $("#tabs").querySelectorAll(".tab").forEach(t=>t.onclick=()=>{CUR=t.dataset.q;render();});
+  $("#metanote").textContent=DATA.meta_note||"";
+  $("#loading").style.display="none"; $("#app").style.display="block";
+  if(CUR==="SUMMARY") renderSummary();
+  else if(CUR==="LIVE") renderLive();
+  else if(CUR==="HISTORY") renderHistory();
+  else if(CUR==="MATES") renderMates();
+  else if(CUR==="ITEMS") renderItems();
+  else renderPanel(DATA.queues[CUR]);
+}
+
+const GROUP_COLORS=["#d29922","#58a6ff","#3fb950","#db61a2","#a371f7"];
+function premadeBadge(g){return g?`<span class="pmate" style="background:${GROUP_COLORS[(g-1)%GROUP_COLORS.length]}" title="Premade (grupo ${g})">🤝</span>`:"";}
+
+async function renderLive(){
+  $("#panel").innerHTML=`<h2>🔴 Partida en vivo</h2><p class="muted" id="livemsg">Comprobando si estás en partida…</p>`;
+  let d;
+  try{
+    const r=await fetch('/api/live');
+    if(!r.ok){const e=await r.json().catch(()=>({error:'HTTP '+r.status}));$("#livemsg").textContent="Error: "+(e.error||r.status);return;}
+    d=await r.json();
+  }catch(e){$("#livemsg").textContent="Error de red: "+String(e);return;}
+  if(d.unavailable){
+    $("#panel").innerHTML=`<h2>🔴 Partida en vivo</h2>
+      <div class="note" style="border-left-color:var(--yellow)">⚠️ Tu Riot API key <b>no tiene acceso al endpoint Spectator</b> (error 1010), así que esta pestaña no puede leer tu partida en vivo. El resto de la app funciona igual.<br><br>Para activarla necesitarías una key cuyo producto incluya la <b>Spectator API</b> (se solicita en developer.riotgames.com al registrar la aplicación). La pestaña ya está lista para cuando la tengas.</div>`;
+    return;
+  }
+  if(!d.in_game){
+    $("#panel").innerHTML=`<h2>🔴 Partida en vivo</h2>
+      <div class="note">No estás en partida ahora mismo. Cuando entres a la Grieta, pulsa <b>Actualizar</b> para ver ambos equipos y sus rangos.</div>
+      <button id="liverefresh">↻ Actualizar</button>`;
+    $("#liverefresh").onclick=renderLive; return;
+  }
+  const teamBlock=(players,idx)=>{
+    const avg=d.avg_rank[idx];
+    const bans=(d.bans||[]).filter(b=>b.team===(idx===0?100:200));
+    return `<div class="sbteam">
+      <div class="sbhead">${idx===0?'Equipo azul':'Equipo rojo'} <span class="muted" style="font-weight:400">· rango medio ${avg?esc(avg):'—'}</span></div>
+      ${players.map(p=>`<div class="pl ${p.is_me?'me':''}">
+        ${icon(p.champion_icon,'ico sm')}
+        <span class="spl">${spellIcon(p.spells[0])}${spellIcon(p.spells[1])}</span>
+        <div class="pn"><b>${esc(p.name||p.champion)}</b>${premadeBadge(p.premade_group)}${p.rank?` <span class="prank">${esc(p.rank)}</span>`:""}<div class="muted">${esc(p.champion)}</div></div>
+      </div>`).join("")}
+      ${bans.length?`<div class="muted" style="margin-top:6px;font-size:12px">Bans: ${bans.map(b=>icon(b.champion_icon,'ico sm')).join("")}</div>`:""}
+    </div>`;
+  };
+  $("#panel").innerHTML=`<h2>🔴 Partida en vivo <span class="muted" style="font-size:12px;font-weight:400">(${esc(d.queue)} · ${d.length_min} min)</span></h2>
+    <button id="liverefresh" style="margin-bottom:10px">↻ Actualizar</button>
+    ${teamBlock(d.teams[0],0)}${teamBlock(d.teams[1],1)}
+    <div class="note">🤝 = premade detectado (jugadores que suelen ir juntos en tu histórico). No detecta dúos enemigos aleatorios que ves por primera vez.</div>`;
+  $("#liverefresh").onclick=renderLive;
+}
+
+function renderItems(){
+  const list=DATA.item_winrates||[];
+  if(!list.length){$("#panel").innerHTML='<p class="muted">Sin datos de items todavía (hace falta jugar varias partidas por campeón).</p>';return;}
+  let h=`<h2>📦 Items por winrate <span class="muted" style="font-size:12px;font-weight:400">(en tus partidas)</span></h2>
+    <div class="note" style="border-left-color:var(--yellow)">⚠️ Las partidas ganadas tienen más items completados, así que esto es <b>correlación, no causa</b> — útil sobre todo para comparar tus elecciones. Solo items con 4+ compras; verde alto WR, rojo bajo.</div>
+    <div class="bgrid">`;
+  list.forEach(c=>{
+    h+=`<div class="bcard"><div class="bn">${icon(c.id_name)} ${esc(c.champ)} <span class="muted" style="font-weight:400;font-size:12px">· ${c.games}g · ${c.win_rate}% WR</span></div>`;
+    c.items.forEach(it=>{
+      h+=`<div class="mu-row"><div class="mu-name" style="width:160px">${itemIcon(it.id)}${esc(it.name)}</div>`+
+        `<div class="bar"><i style="width:${it.win_rate}%;background:${wrColor(it.win_rate)}"></i><span class="t">${it.win_rate}%</span></div>`+
+        `<div class="mu-g">${it.games}g</div></div>`;
+    });
+    h+=`</div>`;
+  });
+  h+=`</div>`;
+  $("#panel").innerHTML=h;
+}
+
+function formDots(form){
+  if(!form||!form.length) return "";
+  return `<span class="form">`+form.map(w=>
+    `<span class="dot" style="background:${w?'var(--green)':'var(--red)'}" title="${w?'Victoria':'Derrota'}"></span>`
+  ).join("")+`</span>`;
+}
+
+function renderHistory(){
+  const rows=DATA.recent_matches||[];
+  if(!rows.length){$("#panel").innerHTML='<p class="muted">Sin partidas recientes.</p>';return;}
+  let h=`<h2>📜 Últimas ${rows.length} partidas</h2>`;
+  if(DATA.opponents_avg_rank)h+=`<div class="note">🎯 Rango medio de los rivales que enfrentas (Solo/Duo): <b>${esc(DATA.opponents_avg_rank)}</b> <span class="muted">· clic en una partida para ver el rango de cada jugador</span></div>`;
+  h+=`<div class="hist">`;
+  rows.forEach(r=>{
+    const col=r.win?'var(--green)':'var(--red)';
+    h+=`<div class="hrow" data-mid="${esc(r.match_id)}" style="border-left:3px solid ${col};cursor:pointer">
+      <div class="hres" style="color:${col}">${r.win?'V':'D'}</div>
+      <div class="hchamp">${icon(r.champion_icon)}<div><b>${esc(r.champion)}</b><div class="muted hq">${esc(r.queue)} · ${esc(r.role||'')}</div></div></div>
+      <div class="hkda"><b>${r.k}/${r.d}/${r.a}</b><div class="muted">${r.kda} KDA</div></div>
+      <div class="hcs">${r.cs} CS<div class="muted">${r.cs_per_min}/min</div></div>
+      <div class="hvs">${r.opponent?`vs ${icon(r.opponent_icon,'ico sm')} ${esc(r.opponent)}`:'<span class="muted">—</span>'}${r.avg_enemy_rank?`<div class="muted" style="font-size:11px">rivales ~${esc(r.avg_enemy_rank)}</div>`:''}${(r.premades||[]).length?`<div class="muted" style="font-size:11px">🤝 ${esc(r.premades.join(', '))}</div>`:''}</div>
+      <div class="hdate muted">${esc(r.date)}<div>${r.duration_min}m</div></div>
+    </div>`;
+  });
+  h+=`</div>`;
+  $("#panel").innerHTML=h;
+  $("#panel").querySelectorAll(".hrow").forEach(row=>row.onclick=()=>openMatch(row.dataset.mid));
+}
+
+async function openMatch(mid){
+  const dw=$("#drawer");
+  dw.innerHTML=`<span class="x" onclick="closeDrawer()">×</span><p class="muted">Cargando partida…</p>`;
+  dw.classList.add("open"); $("#ov").style.display="block";
+  let d;
+  try{
+    const r=await fetch('/api/match?id='+encodeURIComponent(mid));
+    if(!r.ok){
+      const e=await r.json().catch(()=>({error:'HTTP '+r.status}));
+      dw.innerHTML=`<span class="x" onclick="closeDrawer()">×</span><p class="muted">No se pudo cargar la partida: ${esc(e.error||r.status)}</p>`;
+      return;
+    }
+    d=await r.json();
+  }catch(e){
+    dw.innerHTML=`<span class="x" onclick="closeDrawer()">×</span><p class="muted">No se pudo cargar la partida (red): ${esc(String(e))}</p>`;
+    return;
+  }
+  renderMatchDetail(d);
+}
+
+function renderMatchDetail(d){
+  const teamWin=tid=>(tid===d.my_team)?d.win:!d.win;
+  const playerRow=p=>`<div class="pl ${p.is_me?'me':''}">
+    ${icon(p.champion_icon,'ico sm')}
+    <span class="spl">${spellIcon(p.spells[0])}${spellIcon(p.spells[1])}</span>
+    <div class="pn"><b>${esc(p.name||p.champion)}</b>${premadeBadge(p.premade_group)}${p.rank?` <span class="prank">${esc(p.rank)}</span>`:""}<div class="muted">${p.k}/${p.d}/${p.a} · ${p.cs} CS</div></div>
+    <span class="pitems">${(p.items||[]).filter(Boolean).map(itemIcon).join("")}</span></div>`;
+  const teamBlock=(players,tid)=>{
+    const win=teamWin(tid), col=win?'var(--green)':'var(--red)';
+    return `<div class="sbteam"><div class="sbhead" style="color:${col}">${win?'Victoria':'Derrota'} <span class="muted" style="font-weight:400">· equipo ${tid===100?'azul':'rojo'}</span></div>${players.map(playerRow).join("")}</div>`;
+  };
+  $("#drawer").innerHTML=`<span class="x" onclick="closeDrawer()">×</span>
+    <h1 style="margin:0 0 2px">${d.win?'🏆 Victoria':'❌ Derrota'}</h1>
+    <div class="sub">${esc(d.queue)} · ${d.duration_min} min</div>
+    ${teamBlock(d.teams[0],100)}${teamBlock(d.teams[1],200)}`;
+}
+
+function comboLine(s){return `${icon(s.my_icon,'ico sm')}<span class="muted">+</span>${icon(s.their_icon,'ico sm')} ${esc(s.my_champ)} + ${esc(s.their_champ)} <b style="color:${wrColor(s.win_rate)}">${s.win_rate}%</b> <span class="muted">(${s.games})</span>`;}
+
+function renderSummary(){
+  const A=DATA.queues.ALL;
+  if(!A||!A.overall){$("#panel").innerHTML='<p class="muted">Sin datos suficientes.</p>';return;}
+  const p=DATA.profile, solo=(p.ranks||{}).SOLORANKED, flex=(p.ranks||{}).FLEXRANKED;
+  const R=A.recommendations, M=A.matchups, T=A.time_habits, E=A.early_game, tm=DATA.teammates||{};
+  const idn={}; A.champions.forEach(c=>idn[c.name]=c.id_name);
+  const ci=n=>icon(idn[n],'ico sm');
+
+  // KPI strip
+  const rankStr=solo&&solo.tier?`${solo.tier} ${solo.division} · ${solo.lp} LP`:(flex&&flex.tier?`${flex.tier} ${flex.division} (Flex)`:"Sin rank");
+  let h=`<div class="kpis">
+    <div class="kpi"><div class="v" style="font-size:17px">${esc(rankStr)}</div><div class="l">Rank</div></div>
+    <div class="kpi"><div class="v">${A.overall.win_rate}%</div><div class="l">WR global (${A.overall.play})</div></div>
+    ${A.form&&A.form.length?`<div class="kpi"><div class="v">${formDots(A.form)}</div><div class="l">Forma reciente →</div></div>`:""}
+    ${E&&E.available?`<div class="kpi"><div class="v" style="color:${E.avg_gold_diff>=0?'var(--green)':'var(--red)'}">${E.avg_gold_diff>=0?'+':''}${E.avg_gold_diff}</div><div class="l">Oro @15 vs rival</div></div>`:""}
+  </div>`;
+
+  // ---- Build the strengths / improvements bullets ----
+  const good=[], bad=[];
+  (R.play||[]).slice(0,3).forEach(r=>{const stats=r.text.split(' — ').slice(1).join(' — ')||r.text;
+    good.push(`${ci(r.champ)} <b>Juega ${esc(r.champ)}</b> — ${esc(stats)}`);});
+  if((tm.best_duos||[])[0]){const s=tm.best_duos[0];
+    good.push(`${ci(s.my_champ)}<span class="muted">+</span>${icon(s.their_icon,'ico sm')} <b>Tu mejor dúo:</b> ${esc(s.my_champ)} + ${esc(s.their_champ)} (${s.win_rate}% en ${s.games}) con ${esc(s.mate)}`);}
+  if(M&&(M.easy||[])[0]){const e=M.easy[0];good.push(`${ci(e.enemy)||icon(e.enemy,'ico sm')} <b>Te comes a ${esc(e.enemy)}</b> en línea (${e.win_rate}% en ${e.games})`);}
+  if(E&&E.available&&E.wr_behind!=null&&E.wr_behind>=42)good.push(`🔄 <b>Remontas bien</b>: ${E.wr_behind}% incluso yendo por detrás a 15 (media ~33%)`);
+  if(T&&T.available&&T.after_loss&&T.after_loss.win_rate!=null&&T.after_loss.win_rate>=T.base_win_rate)
+    good.push(`🧘 <b>No tilteas</b>: tu WR tras perder (${T.after_loss.win_rate}%) no baja`);
+
+  const stripName=t=>t.split(' — ').slice(1).join(' — ')||t;
+  (R.comfort||[]).slice(0,1).forEach(r=>bad.push(`${ci(r.champ)} <b>Bájale a ${esc(r.champ)}</b> — ${esc(stripName(r.text))}`));
+  (R.avoid||[]).slice(0,1).forEach(r=>bad.push(`${ci(r.champ)} <b>Al banquillo: ${esc(r.champ)}</b> — ${esc(stripName(r.text))}`));
+  if(M&&(M.hard||[])[0]){const e=M.hard[0];bad.push(`${ci(e.enemy)||icon(e.enemy,'ico sm')} <b>Cuidado vs ${esc(e.enemy)}</b> (${e.win_rate}% en ${e.games}) — banéalo o practícalo`);}
+  // biggest build gap: most-played champ with a rune diff
+  let gap=null,gapGames=-1;
+  Object.keys(DATA.build_diffs||{}).forEach(n=>{
+    const diffs=DATA.build_diffs[n]; const g=(DATA.my_builds[n]||{}).games||0;
+    if(diffs&&diffs.length&&diffs[0].startsWith("Runa")&&g>gapGames){gap={champ:n,diff:diffs[0]};gapGames=g;}
+  });
+  if(gap)bad.push(`${ci(gap.champ)} <b>Build de ${esc(gap.champ)}:</b> ${esc(gap.diff)}`);
+  (R.habits||[]).filter(x=>!x.startsWith("Matchup")).slice(0,2).forEach(x=>bad.push(`🛠️ ${esc(x)}`));
+
+  h+=`<div class="grid2">
+    <div><h2>✅ Tus fortalezas</h2><ul class="sumlist good">${good.map(b=>`<li>${b}</li>`).join("")||'<li class="muted">—</li>'}</ul></div>
+    <div><h2>⚠️ Dónde mejorar</h2><ul class="sumlist bad">${bad.map(b=>`<li>${b}</li>`).join("")||'<li class="muted">—</li>'}</ul></div>
+  </div>
+  <div class="note">Resumen sobre tus ${A.overall.play} partidas (todas las colas). Explora las pestañas para el detalle por cola, matchups, builds y compañeros.</div>`;
+  $("#panel").innerHTML=h;
+}
+
+function renderMates(){
+  const t=DATA.teammates||{}, list=t.list||[];
+  if(!list.length){$("#panel").innerHTML='<p class="muted">No se detectaron compañeros recurrentes todavía (hace falta varias partidas con la misma gente).</p>';return;}
+  let h="";
+  // Best duos overall
+  if((t.best_duos||[]).length){
+    h+=`<h2>🔥 Duos óptimos <span class="muted" style="font-size:12px;font-weight:400">(tus mejores combos tú + compañero)</span></h2><div class="duos">`;
+    t.best_duos.forEach(s=>{h+=`<div class="duo"><div class="syn">${comboLine(s)}</div><div class="muted">con ${esc(s.mate)}</div></div>`;});
+    h+=`</div>`;
+  }
+  h+=`<h2>👥 Con quién más juegas <span class="muted" style="font-size:12px;font-weight:400">(tu WR base ${t.base_win_rate}% · clic para sinergias)</span></h2><div class="mates">`;
+  list.forEach((p,i)=>{
+    const col=wrColor(p.win_rate);
+    const diff=p.wr_without!=null?p.win_rate-p.wr_without:null;
+    const diffTxt=diff!=null?` · <span style="color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'+':''}${diff}% vs sin</span>`:"";
+    const rec=p.best_combo?`<div class="mrec">💡 Mejor combo: ${comboLine(p.best_combo)}</div>`:"";
+    h+=`<div class="mate" data-i="${i}">
+      <div class="mhead"><b>${esc(p.name)}</b>${p.tag?`<span class="muted">#${esc(p.tag)}</span>`:""}</div>
+      <div class="mstat"><span style="color:${col};font-weight:700">${p.win_rate}% WR</span> · ${p.wins}V/${p.lose}D en ${p.games}${diffTxt}</div>
+      ${rec}
+      <div class="mchamps">${p.their_champs.map(c=>`<span class="itm">${icon(c.icon,'ico sm')}${esc(c.champ)} <span class="muted">${c.games}</span></span>`).join("")}</div>
+    </div>`;
+  });
+  h+=`</div>`;
+  $("#panel").innerHTML=h;
+  $("#panel").querySelectorAll(".mate").forEach(m=>m.onclick=()=>openMate(+m.dataset.i));
+}
+
+function openMate(i){
+  const p=((DATA.teammates||{}).list||[])[i]; if(!p) return;
+  let h=`<span class="x" onclick="closeDrawer()">×</span>
+    <h1 style="margin:0 0 2px">${esc(p.name)} <span class="muted" style="font-size:14px">#${esc(p.tag||"")}</span></h1>
+    <div class="sub">${p.wins}V/${p.lose}D juntos · ${p.win_rate}% WR${p.wr_without!=null?` (sin: ${p.wr_without}%)`:""}</div>`;
+  if(p.best_combo) h+=`<div class="note" style="border-left-color:var(--green)">💡 <b>Mejor combo:</b> ${comboLine(p.best_combo)} — pedídselo cuando jugéis juntos.</div>`;
+  h+=`<h2>Tus campeones con ${esc(p.name)}</h2><div>${(p.my_champs||[]).map(c=>`<span class="itm">${icon(c.icon,'ico sm')}${esc(c.champ)} <b style="color:${wrColor(c.win_rate)}">${c.win_rate}%</b> <span class="muted">${c.games}</span></span>`).join("")||'<span class="muted">—</span>'}</div>`;
+  h+=`<h2>Sus campeones contigo</h2><div>${p.their_champs.map(c=>`<span class="itm">${icon(c.icon,'ico sm')}${esc(c.champ)} <span class="muted">${c.games}</span></span>`).join("")}</div>`;
+  if(p.synergies&&p.synergies.length){
+    h+=`<h2>Mejores sinergias <span class="muted" style="font-size:12px;font-weight:400">(tu champ + el suyo)</span></h2>`;
+    h+=p.synergies.map(s=>`<div class="mu-row"><div class="syn">${icon(s.my_icon,'ico sm')}<span class="muted">+</span>${icon(s.their_icon,'ico sm')}<span>${esc(s.my_champ)} + ${esc(s.their_champ)}</span></div>
+      <div class="bar" style="max-width:90px"><i style="width:${s.win_rate}%;background:${wrColor(s.win_rate)}"></i><span class="t">${s.win_rate}%</span></div><div class="mu-g">${s.games}g</div></div>`).join("");
+  }
+  $("#drawer").innerHTML=h; $("#drawer").classList.add("open"); $("#ov").style.display="block";
+}
+
+function recLi(r){return `<li><span class="why"><b>${esc(r.champ||"")}</b> ${esc(r.text)}${r.why?`<br><span class="muted">${esc(r.why)}</span>`:""}</span></li>`;}
+function muRow(m){const w=m.win_rate;return `<div class="mu-row"><div class="mu-name">${icon(m.enemy,"ico sm")}${esc(m.enemy)}</div>`+
+  `<div class="bar"><i style="width:${w}%;background:${wrColor(w)}"></i><span class="t">${w}%</span></div>`+
+  `<div class="mu-g">${m.wins}/${m.games}</div></div>`;}
+
+function renderPanel(a){
+  if(!a||!a.overall){$("#panel").innerHTML=`<p class="muted">Sin partidas en esta cola.</p>`;return;}
+  const ov=a.overall, R=a.recommendations, H=a.habits, T=a.time_habits, M=a.matchups;
+  let h="";
+  h+=`<div class="kpis">
+    <div class="kpi"><div class="v">${ov.play}</div><div class="l">Partidas</div></div>
+    <div class="kpi"><div class="v">${ov.win}V/${ov.lose}D</div><div class="l">Récord</div></div>
+    <div class="kpi"><div class="v">${ov.win_rate}%</div><div class="l">Win rate</div></div>
+    ${a.form&&a.form.length?`<div class="kpi"><div class="v">${formDots(a.form)}</div><div class="l">Forma (recientes →)</div></div>`:""}
+  </div>`;
+
+  h+=`<div class="grid2">
+    <div><h2>✅ Jugar</h2><ul class="recs">${(R.play||[]).map(recLi).join("")||'<li class="muted">—</li>'}</ul></div>
+    <div><h2>⛔ Evitar / Banquillo</h2><ul class="recs">${(R.avoid||[]).map(recLi).join("")||'<li class="muted">—</li>'}</ul></div>
+  </div>`;
+  h+=`<div class="grid2">
+    <div><h2>🪤 Trampas de comfort</h2><ul class="recs">${(R.comfort||[]).map(recLi).join("")||'<li class="muted">Ninguna.</li>'}</ul></div>
+    <div><h2>🔬 Explorar</h2><ul class="recs">${(R.explore||[]).map(recLi).join("")||'<li class="muted">—</li>'}</ul></div>
+  </div>`;
+
+  // Matchups
+  if(M&&M.available){
+    h+=`<h2>⚔️ Matchups en línea <span class="muted" style="font-size:12px;font-weight:400">(tu WR vs el enemigo de tu carril)</span></h2>
+      <div class="grid2">
+        <div><div class="muted" style="margin-bottom:4px">Líneas fáciles</div>${(M.easy||[]).slice(0,8).map(muRow).join("")||'<span class="muted">—</span>'}</div>
+        <div><div class="muted" style="margin-bottom:4px">Líneas difíciles</div>${(M.hard||[]).slice(0,8).map(muRow).join("")||'<span class="muted">—</span>'}</div>
+      </div>`;
+  }
+
+  // Habits + tilt
+  h+=`<h2>🧠 Hábitos a corregir</h2><ul class="recs">${(R.habits||[]).map(x=>`<li>${esc(x)}</li>`).join("")||'<li class="muted">Sin alertas.</li>'}</ul>`;
+  if(H&&H.available){
+    h+=`<div class="hgrid" style="margin-top:8px">`+H.metrics.map(m=>{
+      const c=m.rating==="fuerte"?"var(--green)":m.rating==="flojo"?"var(--red)":"var(--gray)";
+      return `<div class="hcard"><div class="v" style="color:${c}">${esc(m.display)}</div><div class="l">${esc(m.label)}</div><div class="r" style="color:${c}">${esc(m.rating)}</div></div>`;
+    }).join("")+`</div>`;
+  }
+  if(T&&T.available){
+    h+=`<h2>⏰ Forma y tilt</h2><p class="muted">Sobre ${T.total} partidas · WR base ${T.base_win_rate}%</p><div class="hgrid">`;
+    const tc=(t,d)=>{if(!d||d.win_rate==null)return"";const c=d.win_rate<T.base_win_rate-3?"var(--red)":d.win_rate>T.base_win_rate+3?"var(--green)":"var(--gray)";
+      return `<div class="hcard"><div class="v" style="color:${c}">${d.win_rate}%</div><div class="l">${t}</div><div class="r muted">${d.games} casos</div></div>`;};
+    h+=tc("WR tras 1 derrota",T.after_loss)+tc("WR tras 2+ derrotas",T.after_streak2)+
+       `<div class="hcard"><div class="v">${T.longest_loss_streak}</div><div class="l">Peor racha</div></div></div>`;
+    if(T.daypart&&T.daypart.length){
+      h+=`<div style="margin-top:10px">`+T.daypart.map(d=>
+        `<div class="mu-row"><div class="mu-name" style="width:160px">${esc(d.label)}</div><div class="bar"><i style="width:${d.win_rate}%;background:${wrColor(d.win_rate)}"></i><span class="t">${d.win_rate}%</span></div><div class="mu-g">${d.games}g</div></div>`
+      ).join("")+`</div>`;
+    }
+  }
+
+  // Early game / snowball
+  const E=a.early_game;
+  if(E&&E.available){
+    const gc=E.avg_gold_diff>=0?'var(--green)':'var(--red)';
+    h+=`<h2>🌱 Juego temprano <span class="muted" style="font-size:12px;font-weight:400">(min 15 · ${E.games} partidas)</span></h2><div class="hgrid">`;
+    h+=`<div class="hcard"><div class="v" style="color:${gc}">${E.avg_gold_diff>=0?'+':''}${E.avg_gold_diff}</div><div class="l">Oro vs rival @15</div></div>`;
+    h+=`<div class="hcard"><div class="v">${E.pct_ahead}%</div><div class="l">Partidas por delante</div></div>`;
+    if(E.wr_ahead!=null)h+=`<div class="hcard"><div class="v" style="color:var(--green)">${E.wr_ahead}%</div><div class="l">WR si vas por delante</div><div class="r muted">${E.ahead_games} casos</div></div>`;
+    if(E.wr_behind!=null)h+=`<div class="hcard"><div class="v" style="color:var(--red)">${E.wr_behind}%</div><div class="l">WR si vas por detrás</div><div class="r muted">${E.behind_games} casos</div></div>`;
+    h+=`</div>`;
+  }
+
+  // Builds
+  const builds=DATA.builds||{};
+  const champNames=a.champions.map(c=>c.name).filter(n=>builds[n]);
+  if(champNames.length){
+    h+=`<h2>🛠️ Builds recomendados</h2><div class="bgrid">`+
+      champNames.slice(0,8).map(n=>buildCard(n,builds[n])).join("")+`</div>`;
+  }
+
+  // Champion table (sortable — click headers)
+  h+=`<h2>🏆 Todos los campeones <span class="muted" style="font-size:12px;font-weight:400">(clic en un champ para detalle · clic en cabecera para ordenar)</span></h2>
+    <div id="champtable"></div>`;
+  $("#panel").innerHTML=h;
+  CHAMPS=a.champions;
+  renderChampTable();
+}
+
+let CHAMPS=[], SORT={field:null,dir:-1};
+const COLS=[["name","Champ",1],["play","Part."],["vd","V/D"],["win_rate","WR"],
+  ["wilson_lb","WR ajust."],["meta_win_rate","Meta"],["roi","ROI"],["kda","KDA"],["verdict","Veredicto"]];
+function renderChampTable(){
+  let list=CHAMPS.slice();
+  if(SORT.field){
+    const f=SORT.field;
+    list.sort((x,y)=>{
+      let a=x[f], b=y[f];
+      if(f==="name"){return SORT.dir*String(a).localeCompare(String(b));}
+      a=a==null?-1:a; b=b==null?-1:b; return SORT.dir*(a-b);
+    });
+  }
+  const arrow=f=>SORT.field===f?(SORT.dir<0?" ▾":" ▴"):"";
+  let h=`<table><thead><tr>`+COLS.map(([f,l,noSort])=>
+    noSort||f==="vd"?`<th>${l}</th>`:`<th class="sortable" data-f="${f}">${l}${arrow(f)}</th>`).join("")+`</tr></thead><tbody>`;
+  list.forEach(c=>{
+    const[v,col]=VERDICT[c.verdict]||["—","var(--gray)"];
+    const roi=c.roi==null?"—":`<span style="color:${c.roi>=0?'var(--green)':'var(--red)'}">${c.roi>=0?"+":""}${c.roi}%</span>`;
+    h+=`<tr data-champ="${esc(c.name)}"><td><div class="champcell">${icon(c.id_name)}${esc(c.name)}</div></td>
+      <td>${c.play}</td><td>${c.win}/${c.lose}</td><td><b>${c.win_rate}%</b></td>
+      <td>${c.wilson_lb}%</td><td>${c.meta_win_rate==null?"—":c.meta_win_rate+"%"}</td><td>${roi}</td>
+      <td>${c.kda==null?"—":c.kda}</td>
+      <td><span class="chip" style="background:${col}22;color:${col};border:1px solid ${col}55">${v}</span></td></tr>`;
+  });
+  h+=`</tbody></table>`;
+  $("#champtable").innerHTML=h;
+  $("#champtable").querySelectorAll("th.sortable").forEach(th=>th.onclick=()=>{
+    const f=th.dataset.f;
+    if(SORT.field===f) SORT.dir*=-1; else {SORT.field=f; SORT.dir=-1;}
+    renderChampTable();
+  });
+  $("#champtable").querySelectorAll("tr[data-champ]").forEach(tr=>tr.onclick=()=>openDrawer(tr.dataset.champ));
+}
+
+function buildCard(name,b){
+  const r=b.runes||{}, it=b.items||{};
+  const boots=it.boots?`<span class="itm">${itemIcon(it.boots.id)}${esc(it.boots.name)}</span>`:"—";
+  return `<div class="bcard"><div class="bn">${esc(name)} <span class="muted" style="font-weight:400;font-size:12px">· ${esc(b.role||"")}</span></div>
+    <div class="brow"><span class="blabel">Runa</span> ${runeIcon(r.keystone_id)}${esc(r.keystone||"—")} <span class="muted">(${esc([r.primary_tree,r.secondary_tree].filter(Boolean).join(" · "))})</span></div>
+    <div class="brow"><span class="blabel">Inicio</span> ${itemList(it.starter)||"—"}</div>
+    <div class="brow"><span class="blabel">Botas</span> ${boots}</div>
+    <div class="brow"><span class="blabel">Core</span> ${itemList(it.core)||"—"}</div>
+    ${(it.situational||[]).length?`<div class="brow"><span class="blabel">Situac.</span> ${itemList(it.situational)}</div>`:""}</div>`;
+}
+
+function myBuildCard(mb){
+  const k=mb.keystone, sp=mb.summoners;
+  const boots=(mb.boots||[]).map(b=>`<span class="itm">${itemIcon(b.id)}${esc(b.name)}</span>`).join("")||"—";
+  const items=(mb.core||[]).map(i=>`<span class="itm">${itemIcon(i.id)}${esc(i.name)} <span class="muted">${i.win_rate}%</span></span>`).join("")||"—";
+  const spells=sp?(sp.ids||[]).map(spellIcon).join("")+" "+esc(sp.names||""):"—";
+  return `<div class="bcard">
+    <div class="brow"><span class="blabel">Runa</span> ${k?runeIcon(k.id)+esc(k.name)+` <span class="muted">(${k.win_rate}% WR)</span>`:"—"}</div>
+    <div class="brow"><span class="blabel">Hechizos</span> ${spells}</div>
+    <div class="brow"><span class="blabel">Botas</span> ${boots}</div>
+    <div class="brow"><span class="blabel">Items</span> ${items}</div></div>`;
+}
+
+function openDrawer(name){
+  const a=DATA.queues[CUR];
+  const champ=a.champions.find(c=>c.name===name)||{};
+  const mus=(a.matchups&&a.matchups.by_my_champion&&a.matchups.by_my_champion[name])||[];
+  const build=(DATA.builds||{})[name];
+  let h=`<span class="x" onclick="closeDrawer()">×</span>`;
+  h+=`<h1 style="margin:0 0 2px">${icon(champ.id_name)} ${esc(name)}</h1>`;
+  h+=`<div class="sub">${champ.play||0} partidas · ${champ.win_rate||0}% WR · KDA ${champ.kda??"—"}`+
+     (champ.roi!=null?` · ROI ${champ.roi>=0?"+":""}${champ.roi}%`:"")+`</div>`;
+  if(champ.reason)h+=`<p class="muted" style="font-size:13px">${esc(champ.reason)}</p>`;
+  const mine=(DATA.my_builds||{})[name];
+  const diffs=(DATA.build_diffs||{})[name]||[];
+  if(mine){
+    h+=`<h2>Tu build <span class="muted" style="font-size:12px;font-weight:400">(${mine.games} partidas · ${mine.win_rate}% WR)</span></h2>${myBuildCard(mine)}`;
+    if(diffs.length)h+=`<div class="note" style="border-left-color:var(--yellow)">${diffs.map(esc).join("<br>")}</div>`;
+  }
+  if(build)h+=`<h2>Build meta (op.gg)</h2>${buildCard(name,build)}`;
+  const muConf=mus.filter(m=>m.games>=2);
+  if(muConf.length){
+    h+=`<h2>Tus matchups con ${esc(name)} <span class="muted" style="font-size:12px;font-weight:400">(por línea enemiga)</span></h2>`;
+    const ROLELBL={adc:"⚔️ vs ADC enemigo",support:"🛡️ vs Support enemigo",mid:"vs Mid enemigo",top:"vs Top enemigo",jungle:"vs Jungla enemiga","":"vs rival"};
+    const groups={};
+    muConf.forEach(m=>{(groups[m.enemy_role]=groups[m.enemy_role]||[]).push(m);});
+    // order: your own lane first, then the cross (bot support/adc), then rest
+    Object.keys(groups).sort((a,b)=>groups[b].reduce((s,x)=>s+x.games,0)-groups[a].reduce((s,x)=>s+x.games,0)).forEach(role=>{
+      const rows=groups[role].slice().sort((a,b)=>b.win_rate-a.win_rate); // best first, worst last
+      h+=`<div class="muted" style="margin:8px 0 2px">${ROLELBL[role]||("vs "+role)}</div>`+rows.map(muRow).join("");
+    });
+  }else h+=`<p class="muted">Sin suficientes repeticiones por enemigo todavía.</p>`;
+  $("#drawer").innerHTML=h;
+  $("#drawer").classList.add("open"); $("#ov").style.display="block";
+}
+function closeDrawer(){$("#drawer").classList.remove("open");$("#ov").style.display="none";}
+$("#ov").onclick=closeDrawer;
+$("#refresh").onclick=async()=>{const b=$("#refresh");b.disabled=true;b.textContent="Actualizando…";await load(true);b.disabled=false;b.textContent="↻ Refrescar";};
+
+load(false);
+
+// Auto-refresco: cada 60s comprueba si el servidor ya tiene datos nuevos (p.ej. tras
+// jugar una partida) y re-renderiza sin molestar si tienes un panel abierto.
+setInterval(async()=>{
+  try{
+    const r=await fetch('/api/data'); if(r.status!==200) return;
+    const d=await r.json();
+    if(DATA && d.generated!==DATA.generated){
+      DATA=d; VER=d.ddragon_version||VER;
+      if(!document.querySelector('#drawer').classList.contains('open')) render();
+    }
+  }catch(e){}
+}, 60000);
+</script>
+</body></html>

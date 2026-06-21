@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "lol-analyzer",
+      "runtimeExecutable": "C:\\Users\\Administrador\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "runtimeArgs": ["app.py"],
+      "port": 8770
+    }
+  ]
+}

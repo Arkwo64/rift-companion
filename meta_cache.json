@@ -1,0 +1,17 @@
+{
+  "patch": "16.12",
+  "elo": "emerald_plus",
+  "source": "lolalytics",
+  "updated": "2026-06-20",
+  "_comment": "meta_win_rate = win rate of the average player on this champ/role at this elo. Refresh each patch. by_id keyed by numeric champion id.",
+  "by_id": {
+    "50":  {"name": "Swain",        "role": "support", "meta_win_rate": 50.05, "tier": "B"},
+    "136": {"name": "Aurelion Sol", "role": "mid",     "meta_win_rate": 50.41, "tier": "C"},
+    "17":  {"name": "Teemo",        "role": "top",     "meta_win_rate": 52.85, "tier": "B+"},
+    "26":  {"name": "Zilean",       "role": "support", "meta_win_rate": 53.06, "tier": "A+"},
+    "427": {"name": "Ivern",        "role": "jungle",  "meta_win_rate": 52.69, "tier": "B+"},
+    "9":   {"name": "Fiddlesticks", "role": "jungle",  "meta_win_rate": 52.48, "tier": "B"},
+    "15":  {"name": "Sivir",        "role": "bottom",  "meta_win_rate": 51.31, "tier": "C"},
+    "120": {"name": "Hecarim",      "role": "jungle",  "meta_win_rate": 51.08, "tier": "A"}
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "riot_id": "MarcoRubio#5570",
+  "region": "euw",
+  "focus_queue": "RANKED",
+  "elo_bracket": "emerald_plus",
+  "min_games_for_confidence": 10,
+  "match_count": 200,
+  "timeline_count": 150,
+  "rank_match_count": 25,
+  "port": 8770,
+  "auto_refresh_minutes": 10,
+  "_comment": "focus_queue (con Riot API): RANKED, RANKED_SOLO, RANKED_FLEX, NORMAL, ARAM o ALL. match_count = nº de partidas recientes a traer (se cachean; runs siguientes solo bajan las nuevas). region en slug op.gg/Riot: euw, na, kr, las, lan, eune..."
+}
