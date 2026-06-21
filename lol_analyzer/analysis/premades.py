@@ -60,6 +60,29 @@ def premade_groups(participants, pair_index, min_games=PREMADE_MIN):
     return groups
 
 
+def match_groups(match, puuid, pair_index, min_games=PREMADE_MIN):
+    """All detected premade groups in a match, tagged ally/enemy relative to you.
+    Returns [{side:'ally'|'enemy', with_me:bool, names:[...], size:int}]."""
+    parts = match.get("info", {}).get("participants", [])
+    me = next((p for p in parts if p.get("puuid") == puuid), None)
+    my_team = me.get("teamId") if me else None
+    groups = premade_groups(parts, pair_index, min_games)
+    members = defaultdict(list)
+    for p in parts:
+        gid = groups.get(p.get("puuid"))
+        if gid:
+            members[gid].append(p)
+    out = []
+    for gid, mem in members.items():
+        with_me = any(p.get("puuid") == puuid for p in mem)
+        side = "ally" if mem[0].get("teamId") == my_team else "enemy"
+        names = [p.get("riotIdGameName") or p.get("summonerName") or "?"
+                 for p in mem if not (with_me and p.get("puuid") == puuid)]
+        out.append({"side": side, "with_me": with_me, "names": names, "size": len(mem)})
+    out.sort(key=lambda g: (0 if g["with_me"] else 1 if g["side"] == "ally" else 2))
+    return out
+
+
 def my_premates(match, puuid, pair_index, champ_map=None, min_games=PREMADE_MIN):
     """Names of YOUR premade teammates in a single match (for the history glance)."""
     parts = match.get("info", {}).get("participants", [])

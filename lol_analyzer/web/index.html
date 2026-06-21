@@ -265,7 +265,7 @@ function renderHistory(){
       <div class="hchamp">${icon(r.champion_icon)}<div><b>${esc(r.champion)}</b><div class="muted hq">${esc(r.queue)} · ${esc(r.role||'')}</div></div></div>
       <div class="hkda"><b>${r.k}/${r.d}/${r.a}</b><div class="muted">${r.kda} KDA</div></div>
       <div class="hcs">${r.cs} CS<div class="muted">${r.cs_per_min}/min</div></div>
-      <div class="hvs">${r.opponent?`vs ${icon(r.opponent_icon,'ico sm')} ${esc(r.opponent)}`:'<span class="muted">—</span>'}${r.avg_enemy_rank?`<div class="muted" style="font-size:11px">rivales ~${esc(r.avg_enemy_rank)}</div>`:''}${(r.premades||[]).length?`<div class="muted" style="font-size:11px">🤝 ${esc(r.premades.join(', '))}</div>`:''}</div>
+      <div class="hvs">${r.opponent?`vs ${icon(r.opponent_icon,'ico sm')} ${esc(r.opponent)}`:'<span class="muted">—</span>'}${r.avg_enemy_rank?`<div class="muted" style="font-size:11px">rivales ~${esc(r.avg_enemy_rank)}</div>`:''}${(r.premade_groups||[]).map(g=>`<div class="muted" style="font-size:11px" title="Premade ${g.side==='ally'?'aliado':'enemigo'}">${g.side==='ally'?'🤝':'⚔️'} ${g.with_me?'tú+':''}${esc(g.names.join('+'))}</div>`).join('')}</div>
       <div class="hdate muted">${esc(r.date)}<div>${r.duration_min}m</div></div>
     </div>`;
   });

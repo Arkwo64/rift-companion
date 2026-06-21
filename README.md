@@ -25,6 +25,14 @@ Historial**, matchups por línea, builds, hábitos y drill-down por campeón. To
 terminar una partida, aparece en 1-2 min sin tocar nada (o pulsa *Refrescar* para ya).
 No actualiza *durante* la partida: Riot solo expone partidas terminadas.
 
+**Desde el móvil (misma WiFi):**
+En `config.json` pon `"host": "0.0.0.0"` y un `"access_token"` (una palabra secreta). Al
+arrancar, la consola imprime la URL para el móvil, p.ej. `http://192.168.1.50:8770/?token=tu_token`.
+Ábrela en el navegador del móvil (con el PC encendido y en la misma red). El token se guarda
+en una cookie, así que solo lo pones la primera vez. Si dejas `host` en `127.0.0.1`, la app
+solo es accesible desde tu PC (sin token). Si expones por LAN sin token, se genera uno
+automático y se imprime en la consola (nunca queda abierto sin protección).
+
 **Reporte estático (one-shot, sin servidor):**
 ```bash
 python run.py                       # genera output/report.html (una cola)
@@ -73,7 +81,7 @@ El reporte siempre muestra el conteo de partidas de cada cola arriba.
 | **Tu build vs meta** | En el drill-down de cada champ: tu build REAL (runa, hechizos, items con TU winrate por item) frente al build meta de op.gg, con las diferencias resaltadas. Ej.: "llevas Aery (39% WR), el meta Conqueror; cuando compras Malignance ganas 71% pero casi nunca la montas". |
 | **Historial** | Tus últimas ~25 partidas: champ, V/D, KDA, CS, rival de línea, cola, fecha. Muestra el **rango medio (Solo/Duo) de los rivales** que enfrentas y, por partida, el rango medio del equipo enemigo. **Clic** → scoreboard completo con el **rango de cada jugador** (tú resaltado). Rangos = actuales, cacheados 24h. |
 | **🔴 Live** | Partida en vivo (Spectator): ambos equipos, campeones, rango de cada jugador, rango medio por equipo, bans y premades. **Requiere una key con acceso a la Spectator API** (si no, avisa con un mensaje claro). |
-| **Premades** | En el historial y el scoreboard, marca quién va en grupo (inferido de tu histórico: jugadores que aparecen juntos en el mismo equipo varias veces). Detecta tus premades y dúos enemigos recurrentes; no randoms de una sola partida. |
+| **Premades (ambos equipos)** | En el historial, el scoreboard y el Live, marca quién va en grupo — **aliados y enemigos** — inferido de tu histórico (jugadores que coinciden en el mismo equipo varias veces). Detecta tus premades y dúos enemigos recurrentes; no randoms de una sola partida. |
 | **Iconos** | Builds con iconos de item, runa y hechizo (Data Dragon), tanto en el meta como en tu build. |
 | **Compañeros + sinergias** | Tus premades detectados: WR juntos vs sin ellos, "duos óptimos" (mejores combos tú+ellos), mejor combo recomendado por persona, y en el drawer tus champs con esa persona + todas las sinergias. |
 | **Juego temprano / snowball** *(timeline)* | Oro/CS vs tu rival al minuto 15, % de partidas por delante, y **tu WR yendo por delante vs por detrás @15** (¿conviertes ventajas?, ¿remontas?). |

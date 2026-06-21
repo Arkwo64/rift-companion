@@ -152,6 +152,7 @@ def recent_matches(matches, puuid, champ_map, n=25, rank_map=None, pair_index=No
             "opponent_icon": opp.get("championName") if opp else None,
             "avg_enemy_rank": ranklib.average(enemy_ranks),
             "premades": premadelib.my_premates(m, puuid, pair_index) if pair_index else [],
+            "premade_groups": premadelib.match_groups(m, puuid, pair_index) if pair_index else [],
         })
     rows.sort(key=lambda r: r["ts"], reverse=True)
     for r in rows:
